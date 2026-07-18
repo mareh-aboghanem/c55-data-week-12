@@ -1,0 +1,13 @@
+# Astro project requirements for the Week 12 assignment.
+#
+# DO NOT add dbt here. Astro Runtime 3.3 ships Python 3.14, and stable
+# dbt-core (1.10/1.11) does not support 3.14 yet, so a baked-in
+# dbt-core==1.10.* crashes on import (mashumaro UnserializableField).
+# The dbt_run / dbt_test tasks instead run dbt through uvx on Python 3.11
+# (the interpreter the Week 10 project targets), which uv provisions and
+# caches at task time. See Chapter 4 for the exact bash_command.
+apache-airflow-providers-postgres
+psycopg2-binary
+pyarrow
+pandas
+requests
