@@ -50,7 +50,7 @@ DBT_DIR = find_dbt_dir()
 
 
 @dag(
-    dag_id=f"taxi_pipeline_{STUDENT}",
+    dag_id=f"{STUDENT}_taxi_pipeline",
     schedule="@monthly",
     start_date=datetime(2024, 1, 1),
     catchup=False,
