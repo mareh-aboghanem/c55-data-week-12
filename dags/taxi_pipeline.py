@@ -38,7 +38,8 @@ DBT_DIR = find_dbt_dir()
 
 
 @dag(
-    # TODO Task 1 (see README): configure the decorator.
+    # Task 1 (see README): configure the decorator — schedule, start_date,
+    # catchup=False, max_active_runs=1, default_args retries, tags.
     start_date=datetime(2024, 1, 1),
 )
 def taxi_pipeline():
@@ -47,13 +48,15 @@ def taxi_pipeline():
         """Download one month of TLC green-taxi data and load it into
         ``{SCHEMA}.raw_trips`` idempotently. Return the number of rows.
 
-        TODO Task 2 and Task 3 (see README).
+        Task 2 and Task 3 (see README): derive the partition from the
+        logical date, DELETE-then-append that month, and filter the
+        parquet to the logical month before write (Gotcha #4).
         """
         raise NotImplementedError
 
-    # TODO Task 2 (see README): add the two transform tasks, wire the full
+    # Task 2 (see README): add the two transform tasks, wire the full
     # chain, and run the transform through the Chapter 4 command so it works
-    # on the image's Python. TODO Task 4: add retry behaviour.
+    # on the image's Python. Task 4: add retry behaviour.
 
     ingest_taxi_month()
 
