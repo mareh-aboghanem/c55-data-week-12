@@ -3,7 +3,8 @@
 # The DAG needs a running Astro/Airflow stack and a live Azure PostgreSQL
 # connection that CI cannot reach, so this checks file presence and code
 # patterns in dags/taxi_pipeline.py and the docs. The actual green run,
-# backfill idempotency, and shared-Airflow deploy are reviewed by a teacher.
+# Screenshot files are presence-checked; content, backfill idempotency, and
+# shared-Airflow deploy are reviewed by a teacher.
 # Total points: 100. Passing score: 60.
 set -euo pipefail
 
@@ -173,7 +174,7 @@ if file_has_content "$runbook"; then
   rb_chars=$(visible_chars "$runbook")
   rb_todo=$(todo_count "$runbook")
   if [[ "$rb_chars" -ge 400 && "$rb_todo" -eq 0 ]]; then
-    l6=$((l6 + 4)); pass "RUNBOOK.md: filled in (${rb_chars} chars, no TODO left)"
+    l6=$((l6 + 3)); pass "RUNBOOK.md: filled in (${rb_chars} chars, no TODO left)"
   else
     fail "RUNBOOK.md: still a template (${rb_chars} chars, ${rb_todo} TODO marker(s)) — fill in all four sections"
   fi
@@ -184,7 +185,7 @@ if file_has_content "$ai"; then
   ai_chars=$(visible_chars "$ai")
   ai_todo=$(todo_count "$ai")
   if [[ "$ai_chars" -ge 400 && "$ai_todo" -eq 0 ]]; then
-    l6=$((l6 + 3)); pass "AI_ASSIST.md: filled in (${ai_chars} chars, no TODO left)"
+    l6=$((l6 + 2)); pass "AI_ASSIST.md: filled in (${ai_chars} chars, no TODO left)"
   else
     fail "AI_ASSIST.md: still a template (${ai_chars} chars, ${ai_todo} TODO marker(s))"
   fi
@@ -195,20 +196,39 @@ if file_has_content "$report"; then
   rp_chars=$(visible_chars "$report")
   rp_todo=$(todo_count "$report")
   if [[ "$rp_chars" -ge 400 && "$rp_todo" -eq 0 ]]; then
-    l6=$((l6 + 3)); pass "ASSIGNMENT_REPORT.md: filled in (${rp_chars} chars, no TODO left)"
+    l6=$((l6 + 2)); pass "ASSIGNMENT_REPORT.md: filled in (${rp_chars} chars, no TODO left)"
   else
     fail "ASSIGNMENT_REPORT.md: still a template (${rp_chars} chars, ${rp_todo} TODO marker(s)) — fill in schedule, deps, backfill, row counts, and shared deploy"
   fi
 else
   fail "ASSIGNMENT_REPORT.md: empty"
 fi
+# Screenshots: presence only (3 pts). Content (Graph/Grid/log/shared UI) is teacher-reviewed.
+# Ignore dbt package / tooling trees so vendored assets do not count.
+mapfile -t _shot_files < <(
+  find "$REPO_ROOT" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' \) \
+    ! -path '*/.git/*' \
+    ! -path '*/include/dbt_project/*' \
+    ! -path '*/.venv/*' \
+    ! -path '*/node_modules/*' \
+    ! -path '*/__pycache__/*' \
+    | sort
+)
+shot_count=${#_shot_files[@]}
+if [[ "$shot_count" -ge 3 ]]; then
+  l6=$((l6 + 3)); pass "screenshots: found ${shot_count} image file(s) (need ≥3 for Graph + Grid/run + task log)"
+elif [[ "$shot_count" -gt 0 ]]; then
+  fail "screenshots: only ${shot_count} image file(s) — commit at least 3 (local Graph, green Grid/run, one task log; add shared-UI shot when the VM is up)"
+else
+  fail "screenshots: none found — commit Graph, Grid/run, and task-log images into the PR (any folder)"
+fi
 score=$((score + l6))
-pass "Level 6: documentation ($l6/10 pts)"
+pass "Level 6: documentation + screenshots ($l6/10 pts)"
 
 # ── Report ──────────────────────────────────────────────────────────────────
 print_results "Week 12 Autograder — Orchestrated Pipeline"
 write_score "$score" "$PASSING" "$SCRIPT_DIR/score.json"
 echo ""
-echo "Reminder: screenshots, shared-Airflow deploy proof, and before/after"
-echo "row counts are teacher-reviewed. Autograder green is not a pass — a"
+echo "Reminder: screenshot *content*, shared-Airflow deploy proof, and before/after"
+echo "row counts are still teacher-reviewed. Autograder green is not a pass — a"
 echo "high static score is necessary but not sufficient."
